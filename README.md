@@ -13,8 +13,8 @@ Adjusted to my needs.
 
 ```shell
 sudo git clone https://github.com/mietzen/fancy-motd.git /opt/fancy-modtd
-rm /etc/update-motd.d/*
-rm /etc/motd
+sudo rm /etc/update-motd.d/*
+sudo rm /etc/motd
 sudo ln -s /root/fancy-motd/motd.sh /etc/update-motd.d/10-fancy-modt
 ```
 
