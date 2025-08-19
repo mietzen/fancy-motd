@@ -6,8 +6,8 @@ source "${BASE_DIR}/framework.sh"
 loads=$(cut -d ' ' -f '1,2,3' /proc/loadavg)
 nproc=$(nproc)
 
-warning_threshold=90   # %
-error_threshold=150    # %
+warning_threshold=70   # %
+error_threshold=95    # %
 
 labels=("1 Min" "5 Min" "15 Min")
 
