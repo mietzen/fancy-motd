@@ -1,28 +1,24 @@
 #!/usr/bin/env bash
 set -euo pipefail
+
+# Default zpools, have to be declared before sourcing framework.sh so the user can override them
+declare -A zpools
+zpools["rpool"]="Root Pool"
+
 # shellcheck source=./framework.sh
 source "${BASE_DIR}/framework.sh"
 
+pools=''
 # Get ZFS pool information
-all_zpools="$(zpool list -H -o name,size,alloc,free,cap 2>/dev/null | sort)"
-
-# Filter pools based on config
-zpools=""
-while IFS= read -r pool; do
-    [[ -z "$pool" ]] && continue
-    pool_name=$(echo "$pool" | cut -f1)
-    
-    # Check if pool is in config - if zpools array exists and pool is defined, include it
-    if [[ -n "${zpools_config[${pool_name}]:-}" ]] || [[ ${#zpools_config[@]} -eq 0 ]]; then
-        zpools+="${pool}\n"
-    fi
-done <<< "${all_zpools}"
+for pool in "${!zpools[@]}"; do
+    pools+="${pool}\n"
+done
 
 text=""
 # Sort pools by config order if defined
-if [[ ${#zpools_config[@]} -gt 0 ]]; then
+if [[ ${#zpools[@]} -gt 0 ]]; then
     sorted_pools=""
-    for pool_key in "${!zpools_config[@]}"; do
+    for pool_key in "${!zpools[@]}"; do
         while IFS= read -r pool; do
             [[ -z "$pool" ]] && continue
             pool_name=$(echo "$pool" | cut -f1)
@@ -46,7 +42,7 @@ else
 fi\t' read -r name size alloc free percentage <<< "${pool}"
     
     # Use display name from config if available
-    display_name="${zpools_config[${name}]:-${name}}"
+    display_name="${zpools[${name}]:-${name}}"
     
     left_label="${display_name} - ${alloc} used, ${free} free"
     right_label="/ ${size}"
