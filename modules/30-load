@@ -3,22 +3,25 @@ set -euo pipefail
 # shellcheck source=./framework.sh
 source "${BASE_DIR}/framework.sh"
 
-loads=$(cut -d ' ' -f '1,2,3' /proc/loadavg)
+loads=$(cut -d ' ' -f 1,2,3 /proc/loadavg)
 nproc=$(nproc)
 
-warning_threshold=90   # %
-error_threshold=150    # %
+warning_threshold=90   # percent
+error_threshold=150    # percent
 
 labels=("1 Min" "5 Min" "15 Min")
-
-text=""
+entries=()
 i=0
 for load in ${loads}; do
-    percent=$(awk -v l="$load" -v n="$nproc" 'BEGIN { printf "%.0f", (l/n)*100 }')
-    display=$(printf "%3s%% (%s)" "$percent" "${labels[$i]}")
-    colored=$(print_color "$display" "$percent" "$warning_threshold" "$error_threshold")
-    text+="${colored}, "
-    ((i++))
+  percent=$(awk -v l="$load" -v n="$nproc" 'BEGIN { printf "%.0f", (l/n)*100 }')
+  display=$(printf "%3s%% (%s)" "$percent" "${labels[$i]}")
+
+  if (( percent == 0 )); then
+    entries+=("${CN}${display}${CN}")
+  else
+    entries+=("$(print_color "$display" "$percent" "$warning_threshold" "$error_threshold")")
+  fi
+  ((i++))
 done
 
-print_columns "Load average" "${text::-2}"
+print_columns "Load average" "$(print_wrap "$WIDTH" "${entries[@]}")"
