@@ -10,9 +10,11 @@ WIDTH=50
 
 # Services to show
 declare -A services
-services["nginx"]="Nginx"
+services["sanoid"]="Sanoid"
+services["zed"]="ZED"
+services["smartd"]="smartd"
 services["docker"]="Docker"
-services["sshd"]="SSH"
+services["unattended-upgrades"]="Unattended upgrades"
 services["fail2ban"]="Fail2Ban"
 services["ufw"]="UFW"
 
