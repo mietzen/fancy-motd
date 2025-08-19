@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-set -euo pipefail
+set -uo pipefail
 # shellcheck source=./framework.sh
 source "${BASE_DIR}/framework.sh"
 
