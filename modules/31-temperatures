@@ -24,12 +24,12 @@ temp_intel() {
 }
 
 temp_amd() {
-    echo "${sensors_output}" | awk '/Tdie/ {print $2}' | tr -d '+'
+    echo "${sensors_output}" | awk '/Tctl/ {print $2}' | tr -d '+'
 }
 
 sensors_output="$(sensors)"
 
-if grep -q 'Tdie' <<< "${sensors_output}"; then
+if grep -q 'Tctl' <<< "${sensors_output}"; then
     temps=$(temp_amd)
 else
     temps=$(temp_intel)
