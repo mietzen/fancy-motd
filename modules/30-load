@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 set -euo pipefail
 # shellcheck source=./framework.sh
 source "${BASE_DIR}/framework.sh"
@@ -7,22 +6,17 @@ source "${BASE_DIR}/framework.sh"
 loads=$(cut -d ' ' -f '1,2,3' /proc/loadavg)
 nproc=$(nproc)
 
-# thresholds in *load* units (not percent)
-warning_threshold=90
-error_threshold=150
+warning_threshold=90   # %
+error_threshold=150    # %
 
 labels=("1 Min" "5 Min" "15 Min")
 
 text=""
 i=0
 for load in ${loads}; do
-    # percentage only for display
     percent=$(awk -v l="$load" -v n="$nproc" 'BEGIN { printf "%.0f", (l/n)*100 }')
-    # Build the display text (no color here)
     display=$(printf "%3s%% (%s)" "$percent" "${labels[$i]}")
-    # Color based on the *raw load* vs load-based thresholds
-    colored=$(print_color "$percent" "$display" "$warning_threshold" "$error_threshold")
-    # Keep comma+space separators; print_columns trims them with ${text::-2}
+    colored=$(print_color "$display" "$percent" "$warning_threshold" "$error_threshold")
     text+="${colored}, "
     ((i++))
 done
