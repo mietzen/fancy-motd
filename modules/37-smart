@@ -9,7 +9,7 @@ type smartctl > /dev/null 2>&1 || exit 1
 sudo -n smartctl --version > /dev/null 2>&1 || exit 1
 
 # Disk list:
-disks=$(lsblk | awk '($6=="disk") {print $1}')
+disks=$(lsblk | awk '($6=="disk") {print $1}' | grep -v zd)
 
 statuses=()
 for disk in ${disks}; do
