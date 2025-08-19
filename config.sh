@@ -19,7 +19,7 @@ services["fail2ban"]="Fail2Ban"
 services["ufw"]="UFW"
 
 # ZFS Pools configuration
-declare -A zpools_config
-zpools_config["rpool"]="Root Pool"
-zpools_config["dockerpool"]="Docker Pool"
-zpools_config["mediapool"]="Media Pool"
+declare -A zpools
+zpools["rpool"]="Root Pool"
+zpools["dockerpool"]="Docker Pool"
+zpools["mediapool"]="Media Pool"
