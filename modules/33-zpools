@@ -1,62 +1,50 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-# Default zpools, have to be declared before sourcing framework.sh so the user can override them
+# Default zpools, can be overridden in config.sh
 declare -A zpools
 zpools["rpool"]="Root Pool"
 
 # shellcheck source=./framework.sh
 source "${BASE_DIR}/framework.sh"
 
-pools=''
-# Get ZFS pool information
-for pool in "${!zpools[@]}"; do
-    pools+="${pool}\n"
-done
-
 text=""
-# Sort pools by config order if defined
-if [[ ${#zpools[@]} -gt 0 ]]; then
-    sorted_pools=""
-    for pool_key in "${!zpools[@]}"; do
-        while IFS= read -r pool; do
-            [[ -z "$pool" ]] && continue
-            pool_name=$(echo "$pool" | cut -f1)
-            if [[ "$pool_name" == "$pool_key" ]]; then
-                sorted_pools+="${pool}\n"
-                break
-            fi
-        done <<< "$(echo -e "$zpools")"
-    done
-    zpools="$sorted_pools"
-fi
 
-while IFS= read -r pool; do
-    [[ -z "$pool" ]] && continue
-    IFS=
+# Gather pool info directly by name
+while read -r line; do
+    # Split fields on arbitrary whitespace
+    read -r name size alloc free percentage <<<"$line"
 
-if [[ -n "$text" ]]; then
-    print_columns "ZFS Pools" "${text::-2}"
-else
-    print_columns "ZFS Pools" "No ZFS pools found"
-fi\t' read -r name size alloc free percentage <<< "${pool}"
-    
-    # Use display name from config if available
-    display_name="${zpools[${name}]:-${name}}"
-    
-    left_label="${display_name} - ${alloc} used, ${free} free"
-    right_label="/ ${size}"
-    free_width=$((WIDTH - ${#left_label} - ${#right_label} - 1))
-    
-    # Get pool status for additional info
-    status=$(zpool status -x "${name}" 2>/dev/null | head -1 | grep -q "is healthy" && echo "healthy" || echo "check")
-    
-    mountpoint=$(print_truncate "(${status})" ${free_width} "start")
+    display_name="${zpools[$name]:-$name}"
+
+    if zpool status -x "$name" 2>/dev/null | head -1 | grep -q "is healthy"; then
+        status="healthy"
+    else
+        status="check"
+    fi
+
     left_label="${display_name} (${status}) - ${alloc} used, ${free} free"
-    
-    label=$(print_split "${WIDTH}" "${left_label}" "${right_label}")
-    text+="${label}\n$(print_bar "${WIDTH}" "${percentage::-1}")\n"
-done <<< "$(echo -e "$zpools")"
+    right_label="/ ${size}"
+
+    # Calculate the actual width needed for the labels
+    left_length=${#left_label}
+    right_length=${#right_label}
+    total_needed=$((left_length + right_length))
+
+    if (( total_needed <= WIDTH )); then
+        label=$(print_split "${WIDTH}" "${left_label}" "${right_label}")
+    else
+        label="${left_label} ${right_label}"
+    fi
+
+    cap_num="${percentage%\%}"
+
+    text+="${label}\n$(print_bar "${WIDTH}" "${cap_num}")\n"
+done < <(
+    for pool in "${!zpools[@]}"; do
+        zpool list -H -o name,size,alloc,free,cap "$pool" 2>/dev/null || true
+    done
+)
 
 if [[ -n "$text" ]]; then
     print_columns "ZFS Pools" "${text::-2}"
