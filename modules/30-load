@@ -9,9 +9,16 @@ nproc=$(nproc)
 warning_threshold=$(bc -l <<< "${nproc} * 0.9")
 error_threshold=$(bc -l <<< "${nproc} * 1.5")
 
+labels=("1 Min" "5 Min" "15 Min")
+
 text=""
+i=0
 for load in ${loads}; do
-    text+="$(print_color "${load}" "${load}" "${warning_threshold}" "${error_threshold}"), "
+    # calculate percentage relative to CPU count
+    percent=$(awk -v l="$load" -v n="$nproc" 'BEGIN { printf "%.0f", (l/n)*100 }')
+    colored=$(print_color "${percent}" "${percent}" "${warning_threshold}" "${error_threshold}")
+    text+="$(printf "%3s%% (%s)" "$colored" "${labels[$i]}")  "
+    ((i++))
 done
 
-print_columns "Load average" "${text::-2}"
+print_columns "Load average" "${text}"
