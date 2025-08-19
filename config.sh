@@ -6,7 +6,7 @@ CE="\e[31m"  # Error
 CN="\e[0m"   # None
 
 # Max width used for components in second column
-WIDTH=50
+WIDTH=54
 
 # Services to show
 declare -A services
