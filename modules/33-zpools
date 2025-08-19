@@ -1,0 +1,32 @@
+#!/usr/bin/env bash
+set -euo pipefail
+# shellcheck source=./framework.sh
+source "${BASE_DIR}/framework.sh"
+
+# Get ZFS pool information
+zpools="$(zpool list -H -o name,size,alloc,free,cap 2>/dev/null | sort)"
+
+text=""
+while IFS= read -r pool; do
+    [[ -z "$pool" ]] && continue
+    IFS=$'\t' read -r name size alloc free percentage <<< "${pool}"
+    
+    left_label="${name} - ${alloc} used, ${free} free"
+    right_label="/ ${size}"
+    free_width=$((WIDTH - ${#left_label} - ${#right_label} - 1))
+    
+    # Get pool status for additional info (optional)
+    status=$(zpool status -x "${name}" 2>/dev/null | head -1 | grep -q "is healthy" && echo "healthy" || echo "check")
+    
+    mountpoint=$(print_truncate "(${status})" ${free_width} "start")
+    left_label="${name} (${status}) - ${alloc} used, ${free} free"
+    
+    label=$(print_split "${WIDTH}" "${left_label}" "${right_label}")
+    text+="${label}\n$(print_bar "${WIDTH}" "${percentage::-1}")\n"
+done <<< "${zpools}"
+
+if [[ -n "$text" ]]; then
+    print_columns "ZFS Pools" "${text::-2}"
+else
+    print_columns "ZFS Pools" "No ZFS pools found"
+fi
