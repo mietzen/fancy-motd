@@ -20,6 +20,6 @@ services["ufw"]="UFW"
 
 # ZFS Pools configuration
 declare -A zpools
-zpools["rpool"]="Root Pool"
-zpools["dockerpool"]="Docker Pool"
-zpools["mediapool"]="Media Pool"
+zpools["rpool"]="Root"
+zpools["dockerpool"]="Docker"
+zpools["storagepool"]="Storage"
