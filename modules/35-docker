@@ -13,8 +13,13 @@ text=""
 if [[ -z "${containers}" ]]; then
     text+="no containers\n"
 else
+    declare -A stacks
+    declare -A stack_state
+
     while IFS= read -r line; do
         IFS=$',' read -r stack name description state <<< "${line}"
+
+        # Choose color based on state
         case ${state} in
             running) color="${CO}" ;;
             paused | restarting) color="${CW}" ;;
@@ -22,13 +27,31 @@ else
             *) color="${CN}" ;;
         esac
 
-        # If stack is empty, it means the container is not part of a Docker Compose stack
         if [[ -n "${stack}" ]]; then
-            name="${stack}.${name}"
+            # Track the "worst" state for the stack
+            if [[ "${state}" != "running" ]]; then
+                stacks["$stack"]=1
+                stack_state["$stack"]="${color}${description,,}${CN}"
+            elif [[ -z "${stacks["$stack"]+x}" ]]; then
+                stacks["$stack"]=0
+                stack_state["$stack"]="${CO}running${CN}"
+            fi
+        else
+            # Single container (not part of a stack) → always display
+            text+="$(print_split "${WIDTH}" "${name}" "${color}${description,,}${CN}")\n"
         fi
-
-        text+="$(print_split "${WIDTH}" "${name}" "${color}${description,,}${CN}")\n"
     done <<< "${containers}"
+
+    # Print stack summary
+    for stack in "${!stacks[@]}"; do
+        if [[ ${stacks[$stack]} -eq 1 ]]; then
+            # At least one container not healthy → show warning
+            text+="$(print_split "${WIDTH}" "${stack}" "${stack_state[$stack]}")\n"
+        else
+            # Everything fine → just show running
+            text+="$(print_split "${WIDTH}" "${stack}" "${stack_state[$stack]}")\n"
+        fi
+    done
 fi
 
 print_columns "Docker" "${text::-2}"
