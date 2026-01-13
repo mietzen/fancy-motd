@@ -10,16 +10,6 @@ WIDTH=54
 
 # Services to show
 declare -A services
-services["sanoid"]="Sanoid"
-services["zed"]="ZED"
 services["smartd"]="smartd"
-services["docker"]="Docker"
 services["unattended-upgrades"]="Unattended upgrades"
 services["fail2ban"]="Fail2Ban"
-services["ufw"]="UFW"
-
-# ZFS Pools configuration
-declare -A zpools
-zpools["rpool"]="Root"
-zpools["dockerpool"]="Docker"
-zpools["storagepool"]="Storage"
